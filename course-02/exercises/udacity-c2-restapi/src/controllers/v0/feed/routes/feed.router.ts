@@ -6,7 +6,8 @@ import * as AWS from '../../../../aws';
 const router: Router = Router();
 
 // Get all feed items
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', 
+async (req: Request, res: Response) => {
     const items = await FeedItem.findAndCountAll({order: [['id', 'DESC']]});
     items.rows.map((item) => {
             if(item.url) {
@@ -18,13 +19,48 @@ router.get('/', async (req: Request, res: Response) => {
 
 //@TODO
 //Add an endpoint to GET a specific resource by Primary Key
+router.get('/:id', async (req: Request, res: Response) => {
+    
+    let {id} = req.params;
+    const item = await FeedItem.findByPk(id);
+
+    if(item)
+    {
+        res.send(item);
+    }
+    else
+    {
+        res.status(404).send("item not found");
+    }
+    
+}); 
 
 // update a specific resource
 router.patch('/:id', 
     requireAuth, 
     async (req: Request, res: Response) => {
-        //@TODO try it yourself
-        res.send(500).send("not implemented")
+        let{id}= req.params;
+        let{caption, url} =req.body;
+        if (!id){
+            return res.status(400).send(`Numeric ID is required`);
+          }
+        
+        const item= await FeedItem.findByPk(id);
+        if (item === null){
+            return res.status(404).send(`This ID is not found`);
+          }
+        if (!caption) {
+            return res.status(400).send({ message: 'Caption is required or malformed' });
+        }
+    
+        // check Filename is valid
+        if (!url) {
+            return res.status(400).send({ message: 'File url is required' });
+        }
+        item.caption=caption;
+        item.url=url; 
+        item.save();
+        res.send(item);
 });
 
 
