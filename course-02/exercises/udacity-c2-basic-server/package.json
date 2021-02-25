@@ -33,6 +33,10 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "aws-sdk": "^2.851.0",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "form-data": "^4.0.0",
+    "stream-to-blob": "^2.0.1"
   }
 }

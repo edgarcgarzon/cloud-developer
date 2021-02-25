@@ -1,5 +1,9 @@
 import express, { Router, Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import fs from 'fs'
+import axios from 'axios'
+import FormData from 'form-data'
+import * as AWS from './aws';
 
 import { Car, cars as cars_list } from './cars';
 
@@ -78,9 +82,34 @@ import { Car, cars as cars_list } from './cars';
   /// @TODO Add an endpoint to post a new car to our list
   // it should require id, type, model, and cost
 
+  app.post( "/S3", 
+  async ( req: Request, res: Response ) => {
+
+    const image_name = 'xander.jpg';
+    const image_path = __dirname + '/'+ image_name;
+    const image_signed_url = AWS.getPutSignedUrl(image_name);
+
+    //Create the FormData
+    var data = new FormData();
+    data.append('file', fs.createReadStream(image_path), image_name);
+    
+    
+    //Send the file to File-system
+    console.log("Sending file to S3...");
+    const axiosResponse = await axios.put(image_signed_url, {
+        data: data,
+        headers: { ...data.getHeaders()}
+      }).catch(function(error) {
+        console.log(JSON.stringify(error));
+        return null;
+      });
+
+    return res.status(200).send(AWS.getGetSignedUrl(image_name));
+    } );
+
   // Start the Server
   app.listen( port, () => {
       console.log( `server running http://localhost:${ port }` );
       console.log( `press CTRL+C to stop server` );
-  } );
+  });
 })();
