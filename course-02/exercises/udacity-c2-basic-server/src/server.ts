@@ -1,9 +1,8 @@
 import express, { Router, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs'
-import axios from 'axios'
-import FormData from 'form-data'
 import * as AWS from './aws';
+import fetch from 'node-fetch';
 
 import { Car, cars as cars_list } from './cars';
 
@@ -87,25 +86,30 @@ import { Car, cars as cars_list } from './cars';
 
     const image_name = 'xander.jpg';
     const image_path = __dirname + '/'+ image_name;
-    const image_signed_url = AWS.getPutSignedUrl(image_name);
-
-    //Create the FormData
-    var data = new FormData();
-    data.append('file', fs.createReadStream(image_path), image_name);
-    
+    const image_signed_url = AWS.getPutSignedUrl(image_name);   
     
     //Send the file to File-system
     console.log("Sending file to S3...");
-    const axiosResponse = await axios.put(image_signed_url, {
-        data: data,
-        headers: { ...data.getHeaders()}
-      }).catch(function(error) {
-        console.log(JSON.stringify(error));
-        return null;
-      });
+    const resp = await fetch(image_signed_url, {
+        method: 'PUT',
+        body: fs.readFileSync(image_path),
+        headers: {
+          'Content-Type': 'image/jpeg',
+      },
+    }).catch( err => {
+      console.log(err);
+      return null;
+    });
+
+    //console.log(respData);
+    if(!resp || (resp.status != 200))
+    {
+      console.log(`S3-service answer: ${resp.status}: ${resp.statusText}`)
+      return res.status(500).send('Problem with image update.');
+    }
 
     return res.status(200).send(AWS.getGetSignedUrl(image_name));
-    } );
+  });
 
   // Start the Server
   app.listen( port, () => {
