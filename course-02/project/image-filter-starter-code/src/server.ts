@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import fs from 'fs';
+import fetch from 'node-fetch';
 
 (async () => {
 
@@ -56,8 +58,64 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
-    res.send("try GET /filteredimage?image_url={{}}")
+  app.patch( "/filteredimage?", async ( req, res ) => {
+    let {image_url} = req.query;
+    let {image_name} = req.query;
+    let {signed_url} = req.query;
+      
+    //Check for the image_url in the query
+    if(!image_url){
+      return res.status(400).send("image_url is required");
+    }
+    console.log(`image_url = ${image_url}`);
+
+    //Check for the image_url in the query
+    if(!image_name){
+      return res.status(400).send("image_name is required");
+    }
+    console.log(`image_url = ${image_name}`);
+
+    //Check for the image_url in the query
+    if(!signed_url){
+      return res.status(400).send("signed_url is required");
+    }
+    console.log(`image_url = ${signed_url}`);
+
+    //Filer image
+    const filteredimage =  await filterImageFromURL(image_url)
+    .catch((err)=> {return null;} );
+
+    //check filter image
+    if(!filteredimage){
+      console.log("Error filtering image");
+      return res.status(500).send("Error filtering image");
+    }
+
+    //change the name of the image
+    const image_path = __dirname + '/util/tmp/' + image_name;
+    fs.renameSync(filteredimage, image_path);
+
+    //Send the file to File-system
+    console.log("Sending file to S3...");
+    const resp = await fetch(signed_url, {
+        method: 'PUT',
+        body: fs.readFileSync(image_path),
+        headers: {
+          'Content-Type': 'image/jpeg',
+      },
+    }).catch( err => {
+      console.log(err);
+      return null;
+    });
+
+    // Check for the S3-response
+    if(!resp || (resp.status != 200))
+    {
+      console.log(`S3-service answer: ${resp.status}: ${resp.statusText}`)
+      return res.status(500).send('Problem with image update');
+    }
+
+    return res.status(200).send();
   } );
   
 
