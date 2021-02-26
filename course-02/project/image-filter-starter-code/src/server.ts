@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, URLS3Fix} from './util/util';
 import fs from 'fs';
 import fetch from 'node-fetch';
 
@@ -65,21 +65,24 @@ import fetch from 'node-fetch';
       
     //Check for the image_url in the query
     if(!image_url){
+      
       return res.status(400).send("image_url is required");
     }
-    console.log(`image_url = ${image_url}`);
+    image_url = URLS3Fix(image_url);
+    console.log(`image_url= ${image_url} \n`);
 
     //Check for the image_url in the query
     if(!image_name){
       return res.status(400).send("image_name is required");
     }
-    console.log(`image_url = ${image_name}`);
+    console.log(`image_name = ${image_name}`);
 
     //Check for the image_url in the query
     if(!signed_url){
       return res.status(400).send("signed_url is required");
     }
-    console.log(`image_url = ${signed_url}`);
+    signed_url = URLS3Fix(signed_url);
+    console.log(`signed_url = ${signed_url}`);
 
     //Filer image
     const filteredimage =  await filterImageFromURL(image_url)
