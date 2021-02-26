@@ -145,8 +145,7 @@ router.patch('/filter/:id',
     //Check the answer
     if(!resp || (resp.status !== 200) || (resp instanceof FetchError))
     {
-      console.log(`Filter image service response: ${resp.status}: ${resp.statusText} : ${resp.message}`)
-      return res.status(500).send('Problem with image filter service');
+      return res.status(500).send(`Filter image service problem: ${resp.status}: ${resp.statusText} : ${resp.message}`);
     }
 
     return res.status(200).send(get_signed_url);

@@ -38,6 +38,7 @@ import fetch from 'node-fetch';
     {
       return res.status(400).send("image_url is required");
     }
+    image_url = URLS3Fix(image_url);
 
     const filteredimage =  await filterImageFromURL(image_url)
                                 .catch((err)=> {return null;} );
