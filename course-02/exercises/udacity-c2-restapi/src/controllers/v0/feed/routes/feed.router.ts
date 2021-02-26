@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import fetch from 'node-fetch';
+import fetch, { FetchError } from 'node-fetch';
 import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
@@ -132,21 +132,20 @@ router.patch('/filter/:id',
                     image_name: item.url,
                     signed_url: put_signed_url
                 });
-    
-    console.log(url);
 
     //Send the resquest to the Filter Image Service
-    const resp = await fetch(url, {method: 'PATCH'})
-    .catch( err => {
-        console.log(err);
-        return null;
-      });    
+    const resp = await fetch(url, {
+        method: 'PATCH',
+        timeout: 500,
+    }).catch( err => {
+        //console.log(err.Type);
+        return err;
+    });    
     
     //Check the answer
-    if(!resp || (resp.status != 200))
+    if(!resp || (resp.status !== 200) || (resp instanceof FetchError))
     {
-      console.log(`Filter image service response: ${resp.status}: ${resp.statusText} : ${resp}`)
-      return res.status(500).send('Problem with image filter service');
+      return res.status(500).send(`Filter image service problem: ${resp.status}: ${resp.statusText} : ${resp.message}`);
     }
 
     return res.status(200).send(get_signed_url);

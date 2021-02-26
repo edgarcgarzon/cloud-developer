@@ -40,3 +40,24 @@ export async function deleteLocalFiles(files:Array<string>){
         fs.unlinkSync(file);
     }
 }
+
+// Get a S3 signed URL and encode the the parameter to read correctly
+export function URLS3Fix(url:string):string
+{
+    let fixUrl = new URL(url);
+
+    let X_Amz_Credential = fixUrl.searchParams.get('X-Amz-Credential');
+    if(X_Amz_Credential){
+        X_Amz_Credential = encodeURIComponent(X_Amz_Credential);
+        fixUrl.searchParams.set('X-Amz-Credential', X_Amz_Credential);
+    }
+
+    let X_Amz_Security_Token = fixUrl.searchParams.get('X-Amz-Security-Token');
+    if(X_Amz_Security_Token){
+        X_Amz_Security_Token = encodeURIComponent(X_Amz_Security_Token);
+        fixUrl.searchParams.set('X-Amz-Security-Token', X_Amz_Security_Token );
+    }
+
+    return unescape(fixUrl.toString()).replace(/%20/g, "%2B");
+
+}
