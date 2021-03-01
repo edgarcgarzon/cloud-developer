@@ -30,7 +30,7 @@ import fetch from 'node-fetch';
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-  app.get( "/filteredimage?", async ( req, res ) => {
+  app.get( "/filteredimage?", async ( req: express.Request, res: express.Response ) => {
     let {image_url} = req.query;
 
     //check for the imge_url in the query
@@ -57,9 +57,9 @@ import fetch from 'node-fetch';
   });
   //! END @TODO1
   
-  // Root Endpoint
-  // Displays a simple message to the user
-  app.patch( "/filteredimage?", async ( req, res ) => {
+  // Patch /filteredimage?image_url={{URL}}&?image_name={{filename.jpg}}&?signed_url={{URL}}
+  // endpoint to filter an image from a public url and push it using a pre-signed url.
+  app.patch( "/filteredimage?", async ( req: express.Request, res: express.Response  ) => {
     let {image_url} = req.query;
     let {image_name} = req.query;
     let {signed_url} = req.query;
@@ -121,6 +121,12 @@ import fetch from 'node-fetch';
 
     return res.status(200).send();
   } );
+
+  // Root Endpoint
+  // Displays a simple message to the user
+  app.get( "/", async ( req: express.Request, res: express.Response ) => {
+      return res.status(200).send("image-filter micro service");
+  });
   
 
   // Start the Server
